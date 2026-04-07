@@ -10,6 +10,8 @@ import Hero from './components/Hero';
 import SignIn from './components/SignIn';
 import Register from './components/Register';
 import SignOut from './components/SignOut';
+import SearchResults from './components/SearchResults';
+import UserAccount from './components/UserAccount';
 
 // Pages
 
