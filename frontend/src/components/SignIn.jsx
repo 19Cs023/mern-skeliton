@@ -1,38 +1,40 @@
-import React, { useState } from 'react';
+import React from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import toast from 'react-hot-toast';
+import useAuthStore from '../store/useAuthStore';
 import './SignIn.css';
 
+const signInSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
 const SignIn = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
 
-  const handleChange = (e) => {
-    setErrorMsg('');
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(signInSchema),
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); 
+  const onSubmit = async (data) => {
     try {
       const response = await axios.post('http://localhost:5000/api/auth/signin', {
-        email: formData.email,
-        password: formData.password
+        email: data.email,
+        password: data.password
       });
-      // Save token and user details based on backend payload
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Save global state (also Syncs to local storage automatically)
+      login(response.data.user, response.data.token);
       
-      setSuccessMsg(`Welcome back, ${response.data.user.name}!`);
+      toast.success(`Welcome back, ${response.data.user.name}!`);
       
       setTimeout(() => {
         navigate('/dashboard');
@@ -40,30 +42,24 @@ const SignIn = () => {
       
     } catch (error) {
       // Backend returns { error: "User not found" } or { error: "Email and password don't match." }
-      setErrorMsg(error.response?.data?.error || 'Sign in failed. Check your credentials.');
+      toast.error(error.response?.data?.error || 'Sign in failed. Check your credentials.');
     }
   };
 
   return (
     <div className="signin-container">
-      <form className="signin-form" onSubmit={handleSubmit}>
+      <form className="signin-form" onSubmit={handleSubmit(onSubmit)}>
         <h2>Sign In</h2>
-        
-        {/* Error/Success display avoiding native JS alerts */}
-        {errorMsg && <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>{errorMsg}</div>}
-        {successMsg && <div className="success-message" style={{ color: 'green', marginBottom: '15px' }}>{successMsg}</div>}
         
         <div className="form-group">
           <label htmlFor="email">Email</label>
           <input
             type="email"
             id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
             placeholder="Enter your email"
-            required
+            {...register('email')}
           />
+          {errors.email && <span className="error-text" style={{ color: 'red', fontSize: '0.8rem' }}>{errors.email.message}</span>}
         </div>
 
         <div className="form-group">
@@ -71,16 +67,15 @@ const SignIn = () => {
           <input
             type="password"
             id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
             placeholder="Enter your password"
-            required
-            minLength="6"
+            {...register('password')}
           />
+          {errors.password && <span className="error-text" style={{ color: 'red', fontSize: '0.8rem' }}>{errors.password.message}</span>}
         </div>
 
-        <button type="submit" className="btn-signin">Log In</button>
+        <button type="submit" className="btn-signin" disabled={isSubmitting}>
+          {isSubmitting ? 'Logging in...' : 'Log In'}
+        </button>
         <p className="register-link">
           Don't have an account? <Link to="/register">Sign up here</Link>
         </p>

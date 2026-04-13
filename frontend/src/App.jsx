@@ -14,7 +14,7 @@ import SearchResults from './components/SearchResults';
 import UserAccount from './components/UserAccount';
 
 // Pages
-
+import DashBoard from './pages/DashBoard';
 
 import './App.css';
 
@@ -34,6 +34,7 @@ function App() {
             <Route path="/signout" element={<SignOut />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/profile" element={<UserAccount />} />
+            <Route path="/dashboard" element={<DashBoard />} />
           </Routes>
         </main>
 

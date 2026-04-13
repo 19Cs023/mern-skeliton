@@ -1,59 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import './Comments.css';
 
+const fetchComments = async () => {
+  const { data } = await axios.get('http://localhost:5000/api/comments');
+  return data;
+};
+
 const Comments = () => {
-  const [comments, setComments] = useState([]);
+  const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState({ title: '', content: '' });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchComments();
-  }, []);
+  const { 
+    data: comments = [], 
+    isLoading: isFetching, 
+    error: fetchError 
+  } = useQuery({
+    queryKey: ['comments'],
+    queryFn: fetchComments,
+  });
 
-  const fetchComments = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/comments');
-      setComments(response.data);
-    } catch (err) {
-      setError('Failed to load comments');
-      console.error(err);
+  const mutation = useMutation({
+    mutationFn: async (commentData) => {
+      const token = localStorage.getItem('token');
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      return await axios.post('http://localhost:5000/api/comments', commentData, config);
+    },
+    onSuccess: () => {
+      setNewComment({ title: '', content: '' });
+      queryClient.invalidateQueries({ queryKey: ['comments'] });
     }
-  };
+  });
 
   const handleChange = (e) => {
     setNewComment({ ...newComment, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Create auth object depending on login state
-      const token = localStorage.getItem('token');
-      
-      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-      
-      await axios.post('http://localhost:5000/api/comments', newComment, config);
-      
-      // Try fetching fresh data to get the populated recorded_by fields
-      fetchComments();
-      setNewComment({ title: '', content: '' });
-      
-    } catch (err) {
-      setError('Failed to post comment. Ensure you are signed in.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    mutation.mutate(newComment);
   };
+
+  if (isFetching) return <div className="comments-section">Loading comments...</div>;
 
   return (
     <div className="comments-section">
       <h3>Comments</h3>
-      {error && <p className="error">{error}</p>}
+      {(fetchError || mutation.isError) && (
+        <p className="error">
+          {fetchError ? 'Failed to load comments.' : 'Failed to post comment. Ensure you are signed in.'}
+        </p>
+      )}
       
       <form onSubmit={handleSubmit} className="comment-form">
         <input 
@@ -71,8 +69,8 @@ const Comments = () => {
           onChange={handleChange} 
           required 
         />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Posting...' : 'Post Comment'}
+        <button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? 'Posting...' : 'Post Comment'}
         </button>
       </form>
 

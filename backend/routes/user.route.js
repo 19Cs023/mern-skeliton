@@ -1,12 +1,14 @@
 import express from 'express'
 import userCtrl from '../controllers/user.controller.js'
 import authCtrl from '../controllers/auth.controller.js'
+import { validate } from '../middlewares/validate.js'
+import { userRegistrationSchema } from '../validators/auth.validator.js'
 
 const router = express.Router()
 
 router.route('/api/users')
   .get(userCtrl.list)
-  .post(userCtrl.create)
+  .post(validate(userRegistrationSchema), userCtrl.create)
 
 router.route('/api/users/:userId')
   .get(authCtrl.requireSignin, userCtrl.read)
