@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../store/useAuthStore';
 import './SignOut.css';
 
 const SignOut = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const logout = useAuthStore((state) => state.logout);
 
   const handleSignOut = async () => {
     setLoading(true);
@@ -16,9 +18,7 @@ const SignOut = () => {
       await axios.get('http://localhost:5000/api/auth/signout');
       
       // Clear localStorage matching what was stored in SignIn
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
+      logout();
       // Successfully signed out, navigate to signin route avoiding full reloads
       navigate('/signin');
 

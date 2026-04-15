@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { expressjwt } from 'express-jwt';
 import dotenv from 'dotenv';
 import { catchAsync } from '../utils/catchAsync.js';
+import { errorHandler } from '../middlewares/error.middleware.js';
+
 dotenv.config();
 
 const signin = catchAsync(async (req, res, next) => {
@@ -11,13 +13,13 @@ const signin = catchAsync(async (req, res, next) => {
   if (!user) {
     const error = new Error('User not found');
     error.statusCode = 401;
-    return next(error);
+    return errorHandler(error, req, res, next);
   }
   
   if (!user.authenticate(req.body.password)) {
     const error = new Error('Email and password don\'t match.');
     error.statusCode = 401;
-    return next(error);
+    return errorHandler(error, req, res, next);
   }
   
   const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);

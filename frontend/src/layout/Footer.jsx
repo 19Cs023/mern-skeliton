@@ -6,15 +6,15 @@ const Footer = () => {
     <footer className="footer-container">
       <div className="footer-content">
         <div className="footer-section">
-          <h3>Tech Articles</h3>
-          <p>Your daily dose of tech news, tutorials, and insights.</p>
+          <h3>MERN Skeleton</h3>
+          <p>A foundational boilerplate for your next full-stack project with React, Node.js, Express, and MongoDB.</p>
         </div>
         <div className="footer-section">
           <h3>Quick Links</h3>
           <ul>
             <li><a href="/">Home</a></li>
-            <li><a href="/details">All Categories</a></li>
-            <li><a href="/login">Log In</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/signin">Sign In</a></li>
             <li><a href="/register">Sign Up</a></li>
           </ul>
         </div>
@@ -27,7 +27,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>&copy; {new Date().getFullYear()} Tech Articles. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} MERN Skeleton. Built from scratch.</p>
       </div>
     </footer>
   );
