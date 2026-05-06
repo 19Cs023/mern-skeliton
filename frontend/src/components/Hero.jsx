@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Hero.css';
+import image from '../assets/powerful-technologies.jpg';
 
 function Hero() {
   return (
@@ -16,10 +17,7 @@ function Hero() {
         </div>
       </div>
       <div className="hero-image">
-        {/* Placeholder for an illustration or dashboard preview */}
-        <div className="image-placeholder">
-          <span>MERN Boilerplate Overview</span>
-        </div>
+        <img src={image} alt="MERN Boilerplate Overview" />
       </div>
     </section>
   );

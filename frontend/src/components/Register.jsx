@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
 import useAuthStore from '../store/useAuthStore';
-import './Register.css';
+import { Container, Box, Typography, TextField, Button, Link, Paper, Alert } from '@mui/material';
 
 const registerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -34,14 +34,12 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Matches userCtrl.create in backend expecting { name, email, password }
       const response = await axios.post('http://localhost:5000/api/users', {
         name: data.name,
         email: data.email,
         password: data.password
       });
       
-      // Try to auto-login the user immediately after successful registration
       try {
         const loginResponse = await axios.post('http://localhost:5000/api/auth/signin', {
           email: data.email,
@@ -55,7 +53,6 @@ const Register = () => {
           navigate('/dashboard');
         }, 1000);
       } catch {
-        // If login fails for some reason, just show success and go to sign in
         setSuccessMsg(response.data.message || 'Registration successful! Please sign in.');
         setTimeout(() => {
           navigate('/signin');
@@ -63,72 +60,87 @@ const Register = () => {
       }
 
     } catch (error) {
-      // Backend catches model validation errors and responds with { error: "error message" }
       setErrorMsg(error.response?.data?.error || 'Registration failed. Please try again.');
     }
   };
 
   return (
-    <div className="register-container">
-      <form className="register-form" onSubmit={handleSubmit(onSubmit)}>
-        <h2>Register</h2>
+    <Container component="main" maxWidth="xs">
+      <Paper elevation={3} sx={{ mt: 8, p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography component="h1" variant="h5" gutterBottom sx = {{ fontWeight: 'bold', color: 'primary.main' }}>
+          Register
+        </Typography>
+
+        {errorMsg && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{errorMsg}</Alert>}
+        {successMsg && <Alert severity="success" sx={{ width: '100%', mb: 2 }}>{successMsg}</Alert>}
         
-        {/* On-screen display for Backend Errors/Success instead of alerts */}
-        {errorMsg && <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>{errorMsg}</div>}
-        {successMsg && <div className="success-message" style={{ color: 'green', marginBottom: '15px' }}>{successMsg}</div>}
-
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
-          <input
-            type="text"
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1, width: '100%' }}>
+          <TextField
+            margin="normal"
+            fullWidth
             id="name"
-            placeholder="Enter your name"
+            label="Name"
+            autoFocus
             {...register('name')}
+            error={!!errors.name}
+            helperText={errors.name?.message}
           />
-          {errors.name && <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{errors.name.message}</span>}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
+          <TextField
+            margin="normal"
+            fullWidth
             id="email"
-            placeholder="Enter your email"
+            label="Email Address"
+            autoComplete="email"
             {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
-          {errors.email && <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{errors.email.message}</span>}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Password"
             type="password"
             id="password"
-            placeholder="Create a password"
+            autoComplete="new-password"
             {...register('password')}
+            error={!!errors.password}
+            helperText={errors.password?.message}
           />
-          {errors.password && <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{errors.password.message}</span>}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="confirmPassword">Confirm Password</label>
-          <input
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Confirm Password"
             type="password"
             id="confirmPassword"
-            placeholder="Confirm your password"
             {...register('confirmPassword')}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
           />
-          {errors.confirmPassword && <span className="error-text" style={{ color: 'red', fontSize: '12px' }}>{errors.confirmPassword.message}</span>}
-        </div>
 
-        <button type="submit" className="btn-register" disabled={isSubmitting}>
-          {isSubmitting ? 'Signing Up...' : 'Sign Up'}
-        </button>
-        <p className="login-link">
-          Already have an account? <Link to="/signin">Sign in here</Link>
-        </p>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Signing Up...' : 'Sign Up'}
+          </Button>
+          
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2">
+              Already have an account?{' '}
+              <Link component={RouterLink} to="/signin" variant="body2">
+                Sign in here
+              </Link>
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 

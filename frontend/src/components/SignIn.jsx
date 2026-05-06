@@ -1,12 +1,12 @@
 import React from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
 import useAuthStore from '../store/useAuthStore';
-import './SignIn.css';
+import { Container, Box, Typography, TextField, Button, Link, Paper } from '@mui/material';
 
 const signInSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
@@ -41,46 +41,63 @@ const SignIn = () => {
       }, 1000);
       
     } catch (error) {
-      // Backend returns { error: "User not found" } or { error: "Email and password don't match." }
       toast.error(error.response?.data?.error || 'Sign in failed. Check your credentials.');
     }
   };
 
   return (
-    <div className="signin-container">
-      <form className="signin-form" onSubmit={handleSubmit(onSubmit)}>
-        <h2>Sign In</h2>
+    <Container component="main" maxWidth="xs">
+      <Paper elevation={3} sx={{ mt: 8, p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography component="h1" variant="h5" gutterBottom sx = {{ fontWeight: 'bold', color: 'primary.main' }}>
+          Sign In
+        </Typography>
         
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1, width: '100%' }}>
+          <TextField
+            margin="normal"
+            fullWidth
             id="email"
-            placeholder="Enter your email"
+            label="Email Address"
+            autoComplete="email"
+            autoFocus
             {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
-          {errors.email && <span className="error-text" style={{ color: 'red', fontSize: '0.8rem' }}>{errors.email.message}</span>}
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
+          <TextField
+            margin="normal"
+            fullWidth
+            label="Password"
             type="password"
             id="password"
-            placeholder="Enter your password"
+            autoComplete="current-password"
             {...register('password')}
+            error={!!errors.password}
+            helperText={errors.password?.message}
           />
-          {errors.password && <span className="error-text" style={{ color: 'red', fontSize: '0.8rem' }}>{errors.password.message}</span>}
-        </div>
 
-        <button type="submit" className="btn-signin" disabled={isSubmitting}>
-          {isSubmitting ? 'Logging in...' : 'Log In'}
-        </button>
-        <p className="register-link">
-          Don't have an account? <Link to="/register">Sign up here</Link>
-        </p>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Logging in...' : 'Log In'}
+          </Button>
+          
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body2">
+              Don't have an account?{' '}
+              <Link component={RouterLink} to="/register" variant="body2">
+                Sign up here
+              </Link>
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 
